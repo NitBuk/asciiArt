@@ -80,5 +80,5 @@ The application uses custom exceptions to handle errors:
 NitBuk
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+None - do what ever you want with it. I'm not responsible for that :)
 
