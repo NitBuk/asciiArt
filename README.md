@@ -26,12 +26,18 @@ This repo is a small but complete engineering project: it includes a command-lin
 
 ## Quickstart
 
-Requirements: Java 8 or newer.
+Requirements: Java 17 or newer.
 
 ```sh
 make build
 make test
 make run
+```
+
+For a one-shot run without the interactive shell, use the batch mode:
+
+```sh
+make batch BATCH_ARGS="--image /path/to/photo.png --resolution 64 --output html --output-file out.html"
 ```
 
 If you prefer direct `javac`/`java` calls:
@@ -40,6 +46,7 @@ If you prefer direct `javac`/`java` calls:
 javac -d build/classes $(find ascii_art image image_char_matching ascii_output tests -name '*.java')
 java -cp build/classes ascii_art.Shell
 java -cp build/classes tests.AsciiArtCoreTests
+java -cp build/classes tests.AsciiArtBatchTests
 ```
 
 ## How To Use
@@ -64,6 +71,27 @@ Output set to html.
 >>> asciiArt
 ASCII art written to out.html
 ```
+
+### Batch Mode
+
+Batch mode skips the interactive prompt and runs a single conversion from the command line.
+
+```sh
+java -cp build/classes ascii_art.Shell \
+  --image /path/to/photo.png \
+  --resolution 64 \
+  --output html \
+  --output-file out.html \
+  --charset printable
+```
+
+Supported flags:
+
+- `--image <path>` - required local image file
+- `--resolution <n>` - number of characters per row
+- `--output console|html` - choose terminal or HTML output
+- `--output-file <path>` - HTML destination, default `out.html`
+- `--charset default|printable` - choose the character palette
 
 ### Supported Commands
 
@@ -106,6 +134,7 @@ The flow is intentionally simple:
 - Build: `make build`
 - Test: `make test`
 - Run: `make run`
+- Batch demo: `make batch BATCH_ARGS="--image /path/to/photo.png --output html"`
 - Main entrypoint: `ascii_art.Shell`
 - Output files: `out.html` is generated when HTML mode is selected.
 
@@ -113,6 +142,7 @@ The flow is intentionally simple:
 
 - Restored a working output package and input helper so the project compiles again.
 - Added a small deterministic test harness for padding, splitting, and brightness calculations.
+- Added a batch mode so the tool can generate art without stepping through the shell.
 - Reworked the README to match the actual repo layout and runtime flow.
 - Added `.gitignore` coverage for build artifacts and IDE files.
 

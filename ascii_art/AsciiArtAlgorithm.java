@@ -28,7 +28,21 @@ public class AsciiArtAlgorithm {
      * @throws IOException if there is an error loading the image
      */
     public AsciiArtAlgorithm(String imagePath, int resolution, Set<Character> charset) throws IOException {
-        this.image = new Image(imagePath);
+        this(new Image(imagePath), resolution, charset);
+    }
+
+    /**
+     * Constructs a new conversion pipeline from an already loaded image.
+     *
+     * @param image the input image
+     * @param resolution the number of characters per row in the resulting ASCII art
+     * @param charset the character set to use for the ASCII art
+     */
+    public AsciiArtAlgorithm(Image image, int resolution, Set<Character> charset) {
+        if (resolution <= 0) {
+            throw new IllegalArgumentException("Resolution must be positive.");
+        }
+        this.image = image;
         this.resolution = resolution;
         this.charMatcher = new SubImgCharMatcher(charset);
     }

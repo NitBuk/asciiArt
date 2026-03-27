@@ -19,8 +19,6 @@ import java.util.List;
  */
 public class Shell {
     private static final int DEFAULT_RESOLUTION = 128;
-    private static final char[] DEFAULT_CHARSET = {'1', '2', '3', '4', '5', '6',
-             '7', '8', '9', '0'};
     private static final String EXIT_COMMAND = "exit";
     private static final String CHARS_COMMAND = "chars";
     private static final String ADD_COMMAND = "add";
@@ -51,24 +49,41 @@ public class Shell {
         this.image = null;
         this.imagePath = null;
         this.resolution = DEFAULT_RESOLUTION;
-        this.charMatcher = new SubImgCharMatcher(DEFAULT_CHARSET);
+        this.charMatcher = new SubImgCharMatcher(CharacterSets.defaultCharArray());
         this.outputToConsole = true;
     }
 
     /**
      * The main method to run the Shell.
      *
-     * @param args command-line arguments (not used).
+     * @param args command-line arguments.
      * @throws ShellRunException if the Shell fails to initialize.
      */
     public static void main(String[] args) throws ShellRunException {
         try {
             System.setProperty("java.awt.headless", "true");
+            if (args.length > 0) {
+                BatchMode.Options options = BatchMode.parseArgs(args);
+                if (options.isHelpRequested()) {
+                    printBatchUsage();
+                    return;
+                }
+                BatchMode.run(options);
+                return;
+            }
             Shell shell = new Shell();
             shell.run();
+        } catch (InvalidCommandException | IOException e) {
+            System.out.println(e.getMessage());
         } catch (RuntimeException e) {
             throw new ShellRunException("Failed to initialize the Shell", e);
         }
+    }
+
+    private static void printBatchUsage() {
+        System.out.println("Usage: java -cp build/classes ascii_art.Shell "
+                + "--image <path> [--resolution <n>] [--output console|html] "
+                + "[--output-file <path>] [--charset default|printable]");
     }
 
     /**
