@@ -3,16 +3,15 @@ package image;
 import java.awt.Color;
 
 /**
- * The ImagePadding class provides a method to pad an image with white pixels
- * so that its dimensions are powers of two.
+ * Pads an image with white borders until both dimensions are powers of two.
  */
 public class ImagePadding {
 
     /**
-     * Pads the given image with white pixels so that its dimensions are powers of two.
+     * Returns a centered, padded copy of the input image.
      *
-     * @param image the original image to be padded
-     * @return a new image with dimensions padded to the nearest power of two
+     * @param image original image
+     * @return padded image
      */
     public static Image padImage(Image image) {
         int originalWidth = image.getWidth();
@@ -23,14 +22,12 @@ public class ImagePadding {
 
         Color[][] newPixelArray = new Color[newHeight][newWidth];
 
-        // Initialize with white pixels
         for (int i = 0; i < newHeight; i++) {
             for (int j = 0; j < newWidth; j++) {
                 newPixelArray[i][j] = Color.WHITE;
             }
         }
 
-        // Copy original pixels to the center of the new image
         int xOffset = (newWidth - originalWidth) / 2;
         int yOffset = (newHeight - originalHeight) / 2;
 
@@ -44,10 +41,7 @@ public class ImagePadding {
     }
 
     /**
-     * Returns the next power of two greater than or equal to the given number.
-     *
-     * @param n the number to find the next power of two for
-     * @return the next power of two greater than or equal to n
+     * Returns the next power of two greater than or equal to {@code n}.
      */
     private static int getNextPowerOfTwo(int n) {
         if (n <= 0) return 1;

@@ -12,15 +12,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * The Shell class provides a command-line interface for generating ASCII art from images.
- * It allows users to manage character sets, adjust resolution, change the input image,
- * and choose the output format.
+ * Command-line front end for the ASCII-art generator.
+ *
+ * The shell lets users load a local image, adjust the sampling resolution,
+ * edit the character palette, and choose console or HTML output.
  */
 public class Shell {
-    private static final String DEFAULT_IMAGE_PATH = "cat.jpeg";
     private static final int DEFAULT_RESOLUTION = 128;
-    private static final char[] DEFAULT_CHARSET = {'1', '2', '3', '4', '5', '6',
-             '7', '8', '9', '0'};
     private static final String EXIT_COMMAND = "exit";
     private static final String CHARS_COMMAND = "chars";
     private static final String ADD_COMMAND = "add";
@@ -45,43 +43,75 @@ public class Shell {
     private String imagePath;
 
     /**
-     * This class is managing the user interface
-     * @throws IOException if the default image cannot be loaded.
+     * Creates a shell with the default character set and console output enabled.
      */
-    public Shell() throws IOException {
-        this.image = new Image(DEFAULT_IMAGE_PATH);
-        this.imagePath = DEFAULT_IMAGE_PATH;
+    public Shell() {
+        this.image = null;
+        this.imagePath = null;
         this.resolution = DEFAULT_RESOLUTION;
-        this.charMatcher = new SubImgCharMatcher(DEFAULT_CHARSET);
+        this.charMatcher = new SubImgCharMatcher(CharacterSets.defaultCharArray());
         this.outputToConsole = true;
     }
 
     /**
      * The main method to run the Shell.
      *
-     * @param args command-line arguments (not used).
+     * @param args command-line arguments.
      * @throws ShellRunException if the Shell fails to initialize.
      */
     public static void main(String[] args) throws ShellRunException {
+        if (args.length > 0) {
+            runBatch(args);
+            return;
+        }
         try {
+            System.setProperty("java.awt.headless", "true");
             Shell shell = new Shell();
             shell.run();
-        } catch (IOException e) {
+        } catch (RuntimeException e) {
             throw new ShellRunException("Failed to initialize the Shell", e);
         }
+    }
+
+    private static void runBatch(String[] args) {
+        try {
+            System.setProperty("java.awt.headless", "true");
+            BatchMode.Options options = BatchMode.parseArgs(args);
+            if (options.isHelpRequested()) {
+                printBatchUsage();
+                return;
+            }
+            BatchMode.run(options);
+        } catch (InvalidCommandException | IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
+    }
+
+    private static void printBatchUsage() {
+        System.out.println("Usage: java -cp build/classes ascii_art.Shell "
+                + "--image <path> [--resolution <n>] [--output console|html] "
+                + "[--output-file <path>] [--charset default|printable]");
     }
 
     /**
      * Runs the Shell, processing user commands in a loop.
      */
     public void run() {
-        String command;
         while (true) {
             try {
                 System.out.print(">>> ");
-                command = KeyboardInput.readLine().trim();
-                String primaryCommand = command.split(" ")[0];
-                String arguments = command.substring(primaryCommand.length()).trim().split(" ")[0];
+                String command = KeyboardInput.readLine();
+                if (command == null) {
+                    return;
+                }
+                command = command.trim();
+                if (command.isEmpty()) {
+                    continue;
+                }
+                String[] parts = command.split("\\s+", 2);
+                String primaryCommand = parts[0];
+                String arguments = parts.length > 1 ? parts[1].trim() : "";
                 switch (primaryCommand) {
                     case EXIT_COMMAND -> {
                         return;
@@ -96,6 +126,8 @@ public class Shell {
                     default -> throw new
                             InvalidCommandException("Did not execute due to incorrect command.");
                 }
+            } catch (IOException e) {
+                return;
             } catch (InvalidCommandException | ImageLoadException | ResolutionChangeException e) {
                 System.out.println(e.getMessage());
             }
@@ -174,6 +206,9 @@ public class Shell {
         if (args.isEmpty()) {
             System.out.println("Resolution set to " + resolution);
         } else if (args.equals(RES_UP)) {
+            if (image == null) {
+                throw new ResolutionChangeException("Did not change resolution. Load an image first.");
+            }
             int newResolution = resolution * 2;
             if (newResolution <= image.getWidth()) {
                 resolution = newResolution;
@@ -182,6 +217,9 @@ public class Shell {
                 System.out.println("Did not change resolution due to exceeding boundaries.");
             }
         } else if (args.equals(RES_DOWN)) {
+            if (image == null) {
+                throw new ResolutionChangeException("Did not change resolution. Load an image first.");
+            }
             int newResolution = resolution / 2;
             int minCharsInRow = Math.max(1, image.getWidth() / image.getHeight());
             if (newResolution >= minCharsInRow) {
@@ -206,6 +244,7 @@ public class Shell {
             if (resolution > image.getWidth()) {
                 resolution = 2;
             }
+            System.out.println("Loaded image: " + imagePath);
         } catch (IOException e) {
             throw new ImageLoadException("Did not execute due to problem with image file.");
         }
@@ -214,8 +253,10 @@ public class Shell {
     private void changeOutput(String output) throws InvalidCommandException {
         if (output.equals(CONSOLE_OUTPUT)) {
             outputToConsole = true;
+            System.out.println("Output set to console.");
         } else if (output.equals(HTML_OUTPUT)) {
             outputToConsole = false;
+            System.out.println("Output set to html.");
         } else {
             throw new InvalidCommandException("Did not change output method due to incorrect format.");
         }
@@ -224,6 +265,9 @@ public class Shell {
     private void generateAsciiArt() throws InvalidCommandException {
         if (charMatcher.getCharset().size() < 2) {
             throw new InvalidCommandException("Did not execute. Charset is too small.");
+        }
+        if (imagePath == null) {
+            throw new InvalidCommandException("Did not execute. Load an image first.");
         }
 
         try {
@@ -235,6 +279,7 @@ public class Shell {
                 new ConsoleAsciiOutput().out(asciiArt);
             } else {
                 new HtmlAsciiOutput("out.html", "Courier New").out(asciiArt);
+                System.out.println("ASCII art written to out.html");
             }
         } catch (IOException e) {
             System.out.println("Error generating ASCII art.");

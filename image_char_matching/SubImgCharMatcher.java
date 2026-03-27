@@ -6,18 +6,16 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The SubImgCharMatcher class is responsible for managing a character set and calculating their brightness.
- * It provides methods to add, remove, and retrieve characters, and to find the best matching character
- * based on image brightness.
+ * Maintains a character palette and maps image brightness to the closest match.
  */
 public class SubImgCharMatcher {
     private final Map<Character, Double> charBrightnessMap;
     private boolean needsNormalization;
 
     /**
-     * Constructs a SubImgCharMatcher with the given character set.
+     * Creates a matcher from an initial palette.
      *
-     * @param charset the character set to initialize the matcher with
+     * @param charset initial characters
      */
     public SubImgCharMatcher(char[] charset) {
         this.charBrightnessMap = new HashMap<>();
@@ -29,9 +27,9 @@ public class SubImgCharMatcher {
     }
 
     /**
-     * Constructs a SubImgCharMatcher with the given character set.
+     * Creates a matcher from an initial palette.
      *
-     * @param charset the character set to initialize the matcher with
+     * @param charset initial characters
      */
     public SubImgCharMatcher(Set<Character> charset) {
         this.charBrightnessMap = new HashMap<>();
@@ -43,7 +41,7 @@ public class SubImgCharMatcher {
     }
 
     /**
-     * Calculates brightness for each character in the character set.
+     * Recomputes the per-character brightness cache and normalizes it.
      */
     private void calculateCharBrightness() {
         charBrightnessMap.replaceAll((c, brightness) ->
@@ -52,10 +50,7 @@ public class SubImgCharMatcher {
     }
 
     /**
-     * Calculates the brightness of a given boolean array representation of a character.
-     *
-     * @param charImage the boolean array representation of the character
-     * @return the brightness value of the character
+     * Counts the fraction of white pixels in a rendered character.
      */
     private double calculateBrightness(boolean[][] charImage) {
         int whitePixels = 0;
@@ -72,7 +67,7 @@ public class SubImgCharMatcher {
     }
 
     /**
-     * Normalizes the brightness values of all characters in the character set.
+     * Normalizes all cached brightness values to {@code [0, 1]}.
      */
     private void normalizeBrightness() {
         double minBrightness = Collections.min(charBrightnessMap.values());
@@ -87,10 +82,10 @@ public class SubImgCharMatcher {
     }
 
     /**
-     * Gets the best matching character for a given brightness value.
+     * Returns the closest-matching character for the given brightness.
      *
-     * @param brightness the brightness value to match
-     * @return the character with the closest brightness value
+     * @param brightness normalized tile brightness
+     * @return selected character
      */
     public char getCharByImageBrightness(double brightness) {
         if (needsNormalization) {
@@ -113,9 +108,9 @@ public class SubImgCharMatcher {
     }
 
     /**
-     * Adds a character to the character set.
+     * Adds a character to the palette.
      *
-     * @param c the character to add
+     * @param c character to add
      */
     public void addChar(char c) {
         double brightness = calculateBrightness(CharConverter.convertToBoolArray(c));
@@ -124,9 +119,9 @@ public class SubImgCharMatcher {
     }
 
     /**
-     * Removes a character from the character set.
+     * Removes a character from the palette.
      *
-     * @param c the character to remove
+     * @param c character to remove
      */
     public void removeChar(char c) {
         charBrightnessMap.remove(c);
@@ -134,9 +129,9 @@ public class SubImgCharMatcher {
     }
 
     /**
-     * Gets the character set.
+     * Returns the current palette.
      *
-     * @return a set of characters in the character set
+     * @return current characters
      */
     public Set<Character> getCharset() {
         return charBrightnessMap.keySet();

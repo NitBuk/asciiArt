@@ -5,18 +5,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The ImageSplitter class provides methods to split an image into sub-images
- * and to calculate the brightness of a given sub-image.
+ * Splits padded images into square tiles and measures tile brightness.
  */
 public class ImageSplitter {
 
     /**
-     * Splits the given image into sub-images of the specified size.
-     * Each sub-image is a square of pixels, and sub-images are padded with white pixels if necessary.
+     * Splits the image into square sub-images.
      *
-     * @param image the original image to be split
-     * @param subImageSize the size of each sub-image (each sub-image will be subImageSize x subImageSize)
-     * @return a list of sub-images, each represented as a 2D array of Colors
+     * @param image input image
+     * @param subImageSize tile size in pixels
+     * @return tiles in row-major order
      */
     public static List<Color[][]> splitImage(Image image, int subImageSize) {
         List<Color[][]> subImages = new ArrayList<>();
@@ -41,12 +39,10 @@ public class ImageSplitter {
     }
 
     /**
-     * Calculates the brightness of a given sub-image.
-     * The brightness is calculated by converting each pixel to a grayscale value
-     * and then averaging these values over the entire sub-image.
+     * Calculates normalized brightness for a tile.
      *
-     * @param subImage the sub-image to calculate the brightness for
-     * @return the normalized brightness value of the sub-image, between 0 and 1
+     * @param subImage tile pixels
+     * @return brightness in the range {@code [0, 1]}
      */
     public static double calculateBrightness(Color[][] subImage) {
         double totalBrightness = 0;
