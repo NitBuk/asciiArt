@@ -1,84 +1,127 @@
 # asciiArt
 
-## Description
-A Java-based ASCII Art Generator that converts images to ASCII art using a customizable character set and resolution. This project includes a command-line interface for user interaction and supports multiple output formats, including console and HTML.
+A compact Java CLI that turns a local image into ASCII art by sampling the image in square tiles, matching each tile to a character palette, and rendering the result to the terminal or to HTML.
 
-## Features
-- Convert images to ASCII art.
-- Customize the character set used for generating ASCII art.
-- Adjust the resolution of the ASCII art.
-- Choose between console and HTML output formats.
-- Command-line interface for easy interaction.
+## 30-Second Overview
 
-## Getting Started
+This repo is a small but complete engineering project: it includes a command-line shell, image preprocessing, character-to-brightness matching, and two output modes. The focus is on clear pipeline design rather than on model training or AI APIs.
 
-### Prerequisites
-- Java 8 or higher
+## What It Demonstrates
 
-### Installation
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/NitBuk/asciiArt.git
-    ```
-2. Navigate to the project directory:
-    ```sh
-    cd asciiArt
-    ```
-3. Compile the project:
-    ```sh
-    javac -d bin src/**/*.java
-    ```
-
-### Running the Application
-1. Run the application:
-    ```sh
-    java -cp bin ascii_art.Shell
-    ```
-
-### Command-line Interface
-- `exit` - Exit the program.
-- `chars` - View the current character set.
-- `add <char>` - Add a character to the character set.
-- `add all` - Add all ASCII characters (32-126) to the character set.
-- `add space` - Add a space character to the character set.
-- `add <start>-<end>` - Add a range of characters to the character set.
-- `remove <char>` - Remove a character from the character set.
-- `remove all` - Remove all ASCII characters (32-126) from the character set.
-- `remove space` - Remove a space character from the character set.
-- `remove <start>-<end>` - Remove a range of characters from the character set.
-- `res [up|down]` - Change the resolution of the ASCII art.
-- `image <file_path>` - Change the input image.
-- `output [console|html]` - Set the output format.
-- `asciiArt` - Generate the ASCII art with the current settings.
+- CLI command parsing and interactive workflow design.
+- Image preprocessing: padding, tiling, and brightness calculation.
+- Character matching based on measured brightness.
+- Two render targets: terminal output and HTML output.
+- Lightweight exception handling and testable helper logic.
 
 ## Project Structure
-- `ascii_art` - Contains the main application classes.
-- `ascii_art.exceptions` - Contains custom exception classes.
-- `ascii_output` - Contains classes for different output formats.
-- `image` - Contains classes for image manipulation.
-- `image_char_matching` - Contains classes for character brightness matching.
 
-## Detailed Class Descriptions
-- **SubImgCharMatcher**: Manages the set of characters used to generate ASCII art and matches characters to image brightness.
-- **Image**: Represents an image and provides methods to manipulate and retrieve image properties.
-- **AsciiArtAlgorithm**: Contains the algorithm for converting images into ASCII art based on brightness values.
-- **ImagePadding**: Provides utility methods for padding images to ensure they fit required dimensions.
-- **Shell**: Provides a command-line interface for the ASCII art generator, allowing users to interact with the program and modify settings.
-- **ImageSplitter**: Splits images into smaller segments and calculates brightness values.
-- **CharConverter**: Converts characters to different formats for processing and matching.
-- **ConsoleAsciiOutput**: Outputs the ASCII art to the console.
-- **HtmlAsciiOutput**: Outputs the ASCII art to an HTML file.
+- `ascii_art/` - CLI entrypoint, shell logic, and pipeline orchestration.
+- `ascii_art/exceptions/` - shell-specific exception types.
+- `ascii_output/` - console and HTML renderers.
+- `image/` - image wrapper, padding, and splitting helpers.
+- `image_char_matching/` - character brightness measurement and matching.
+- `tests/` - lightweight deterministic checks for core helpers.
+- `UML.pdf` - legacy course design artifact kept for historical context.
 
-## Exception Handling
-The application uses custom exceptions to handle errors:
-- **InvalidCommandException**: Thrown when an invalid command is entered.
-- **ResolutionChangeException**: Thrown when there is an issue changing the resolution.
-- **ImageLoadException**: Thrown when there is an issue loading the image.
-- **ShellRunException**: Thrown when there is an issue running the shell.
+## Quickstart
 
-## Author
-NitBuk
+Requirements: Java 8 or newer.
 
-## License
-None - do what ever you want with it. I'm not responsible for that :)
+```sh
+make build
+make test
+make run
+```
 
+If you prefer direct `javac`/`java` calls:
+
+```sh
+javac -d build/classes $(find ascii_art image image_char_matching ascii_output tests -name '*.java')
+java -cp build/classes ascii_art.Shell
+java -cp build/classes tests.AsciiArtCoreTests
+```
+
+## How To Use
+
+The shell starts with the default character palette already loaded. Before generating art, load a local image:
+
+```text
+>>> image /path/to/photo.png
+Loaded image: /path/to/photo.png
+>>> res 64
+Resolution set to 64
+>>> output console
+Output set to console.
+>>> asciiArt
+```
+
+The console mode prints the art directly in the terminal. HTML mode writes `out.html` in the project root:
+
+```text
+>>> output html
+Output set to html.
+>>> asciiArt
+ASCII art written to out.html
+```
+
+### Supported Commands
+
+- `chars` - print the current character palette.
+- `add <char>` - add one character.
+- `add all` - add printable ASCII characters.
+- `add space` - add the space character.
+- `add <start>-<end>` - add a character range.
+- `remove <char>` - remove one character.
+- `remove all` - remove printable ASCII characters.
+- `remove space` - remove the space character.
+- `remove <start>-<end>` - remove a character range.
+- `res` - show the current resolution.
+- `res up` / `res down` - adjust resolution in powers of two.
+- `image <path>` - load a local image file.
+- `output console` - render to the terminal.
+- `output html` - render to `out.html`.
+- `asciiArt` - generate the output using the current settings.
+- `exit` - quit the shell.
+
+## Architecture
+
+The flow is intentionally simple:
+
+1. `Shell` reads and validates user commands.
+2. `Image` loads the source file into an in-memory pixel grid.
+3. `ImagePadding` pads the image to power-of-two dimensions.
+4. `ImageSplitter` splits the image into square tiles and measures brightness.
+5. `SubImgCharMatcher` maps each tile brightness to the nearest character.
+6. `ConsoleAsciiOutput` or `HtmlAsciiOutput` renders the resulting matrix.
+
+## Limitations
+
+- The repo does not bundle sample images, so you need to point the shell at a local JPEG/PNG.
+- HTML output is intentionally minimal and focuses on readability, not theming.
+- The character matching uses rendered glyph brightness, so the exact art depends on the available fonts on your system.
+
+## Development Notes
+
+- Build: `make build`
+- Test: `make test`
+- Run: `make run`
+- Main entrypoint: `ascii_art.Shell`
+- Output files: `out.html` is generated when HTML mode is selected.
+
+## Recent Improvements
+
+- Restored a working output package and input helper so the project compiles again.
+- Added a small deterministic test harness for padding, splitting, and brightness calculations.
+- Reworked the README to match the actual repo layout and runtime flow.
+- Added `.gitignore` coverage for build artifacts and IDE files.
+
+## Roadmap
+
+- Add a bundled sample image for a one-command demo.
+- Add a richer HTML stylesheet or alternate output format.
+- Split shell parsing into smaller helpers if the command set grows.
+
+## About `UML.pdf`
+
+`UML.pdf` is a legacy design artifact from the course project. It is kept for reference, but the source code and README are the current source of truth for how the app works today.

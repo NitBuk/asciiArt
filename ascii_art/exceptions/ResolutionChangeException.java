@@ -1,14 +1,13 @@
 package ascii_art.exceptions;
 
 /**
- * The ResolutionChangeException class represents an exception that is thrown
- * when there is an error related to changing the resolution in the ASCII art generation process.
+ * Signals a bad resolution command or an invalid resolution transition.
  */
 public class ResolutionChangeException extends Exception {
     /**
-     * Constructs a new ResolutionChangeException with the specified detail message.
+     * Creates a new exception with a helpful message.
      *
-     * @param message the detail message
+     * @param message error description
      */
     public ResolutionChangeException(String message) {
         super(message);

@@ -1,14 +1,13 @@
 package ascii_art.exceptions;
 
 /**
- * The InvalidCommandException class represents an exception that is thrown
- * when an invalid command is encountered in the ASCII art generation process.
+ * Signals a malformed or unsupported shell command.
  */
 public class InvalidCommandException extends Exception {
     /**
-     * Constructs a new InvalidCommandException with the specified detail message.
+     * Creates a new exception with a helpful message.
      *
-     * @param message the detail message
+     * @param message error description
      */
     public InvalidCommandException(String message) {
         super(message);

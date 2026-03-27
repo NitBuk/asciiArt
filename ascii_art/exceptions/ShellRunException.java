@@ -1,24 +1,23 @@
 package ascii_art.exceptions;
 
 /**
- * The ShellRunException class represents an exception that is thrown
- * when there is a general error during the run of the Shell.
+ * Signals that the shell could not be started cleanly.
  */
 public class ShellRunException extends Exception {
     /**
-     * Constructs a new ShellRunException with the specified detail message.
+     * Creates a new exception with a helpful message.
      *
-     * @param message the detail message
+     * @param message error description
      */
     public ShellRunException(String message) {
         super(message);
     }
 
     /**
-     * Constructs a new ShellRunException with the specified detail message and cause.
+     * Creates a new exception with a helpful message and cause.
      *
-     * @param message the detail message
-     * @param cause the cause of the exception
+     * @param message error description
+     * @param cause underlying failure
      */
     public ShellRunException(String message, Throwable cause) {
         super(message, cause);
