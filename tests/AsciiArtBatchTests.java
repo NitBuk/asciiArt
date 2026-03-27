@@ -6,6 +6,7 @@ import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -19,6 +20,7 @@ public final class AsciiArtBatchTests {
     public static void main(String[] args) throws Exception {
         testParseArgsReadsBatchOptions();
         testRunWritesHtmlAndReturnsAsciiMatrix();
+        testMissingImageReturnsNonZeroExitCode();
         System.out.println("All asciiArt batch tests passed.");
     }
 
@@ -82,6 +84,25 @@ public final class AsciiArtBatchTests {
         Path file = Files.createTempFile("ascii-art-batch", ".png");
         ImageIO.write(image, "png", file.toFile());
         return file;
+    }
+
+    private static void testMissingImageReturnsNonZeroExitCode() throws Exception {
+        String javaBin = Path.of(System.getProperty("java.home"), "bin", "java").toString();
+        String classpath = System.getProperty("java.class.path");
+        Process process = new ProcessBuilder(
+                javaBin,
+                "-cp",
+                classpath,
+                "ascii_art.Shell",
+                "--image",
+                "does-not-exist.png"
+        ).redirectErrorStream(true).start();
+
+        String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        int exitCode = process.waitFor();
+
+        assertEquals(1, exitCode, "missing image exit code");
+        assertTrue(!output.isBlank(), "missing image output");
     }
 
     private static void assertTrue(boolean condition, String label) {

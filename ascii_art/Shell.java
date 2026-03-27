@@ -60,23 +60,31 @@ public class Shell {
      * @throws ShellRunException if the Shell fails to initialize.
      */
     public static void main(String[] args) throws ShellRunException {
+        if (args.length > 0) {
+            runBatch(args);
+            return;
+        }
         try {
             System.setProperty("java.awt.headless", "true");
-            if (args.length > 0) {
-                BatchMode.Options options = BatchMode.parseArgs(args);
-                if (options.isHelpRequested()) {
-                    printBatchUsage();
-                    return;
-                }
-                BatchMode.run(options);
-                return;
-            }
             Shell shell = new Shell();
             shell.run();
-        } catch (InvalidCommandException | IOException e) {
-            System.out.println(e.getMessage());
         } catch (RuntimeException e) {
             throw new ShellRunException("Failed to initialize the Shell", e);
+        }
+    }
+
+    private static void runBatch(String[] args) {
+        try {
+            System.setProperty("java.awt.headless", "true");
+            BatchMode.Options options = BatchMode.parseArgs(args);
+            if (options.isHelpRequested()) {
+                printBatchUsage();
+                return;
+            }
+            BatchMode.run(options);
+        } catch (InvalidCommandException | IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
         }
     }
 
